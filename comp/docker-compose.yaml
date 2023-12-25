@@ -1,0 +1,4 @@
+services:
+  nginx-test-server:
+    image: nginx:latest
+    ports:

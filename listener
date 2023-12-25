@@ -1,0 +1,162 @@
+#!/bin/bash
+task=$1
+if [ -f './comp/dc_main' ]; then 
+  # Running command from script directory
+  subName="comp"
+  parentPath="."
+else
+  # Running command in global mode
+
+  scriptPath=$(which listener)
+  parentPath=$(echo $scriptPath | sed 's/\/listener//')
+  subName="$parentPath/comp"
+fi
+
+# Compute default value for task 
+if [[ $task != "stop" && $task != "start" && $task != "setup-server" && $task != "status" ]]; then
+  task="start"
+fi
+
+# Check dependencies
+# Check if net-tools
+which netstat &> /dev/null
+ec=$?
+if [ $ec -ne 0 ]; then
+  echo -e "\nNo netstat utility installed, please install the package 'net-tools' and try again\n"
+  exit 2
+fi
+
+# Check if docker is installed
+which netstat &> /dev/null
+ec=$?
+if [ $ec -ne 0 ]; then
+  echo -e "\nDocker is not installed on this server, please install it and try again\n"
+  exit 2
+fi
+
+if [ $task = "start" ]; then
+  # Check if comp/ports.txt file exists in the target directory
+  if [ -f "$subName/ports.txt" ]; then
+
+    # Read the PORTS from port.txt
+    readarray -t PORTS < $subName/ports.txt
+    freePorts=""
+    portsInUse=""
+    cat $subName/dc_main > $subName/docker-compose.yaml
+
+    n=0
+    a=0
+
+    for PORT in ${PORTS[@]}; do
+      
+      # Parse Data
+      trimmed_port="${PORT#"${PORT%%[![:space:]]*}"}"
+      trimmed_port="${trimmed_port%"${trimmed_port##*[![:space:]]}"}"
+
+      if [ $n -ne 0  ]; then
+        f_port_seperator=", "
+      else
+        f_port_seperator=""
+      fi
+
+      if [ $a -ne 0  ]; then
+        p_i_u_seperator=", "
+      else
+        p_i_u_seperator=""
+      fi
+
+      # Check if the ports listed in comp/ports.txt are already in use..
+      netstat -tuln | grep -w $trimmed_port &> /dev/null
+      ec=$?
+
+      if [ $ec -eq 0 ]; then 
+        portsInUse="$portsInUse$p_i_u_seperator$trimmed_port"
+        a=1
+      else
+        sed -i -e "s/ports:/ports:\n      - \"$trimmed_port\:80\"/" $subName/docker-compose.yaml
+        freePorts="$freePorts$f_port_seperator$trimmed_port"
+        n=1
+      fi
+    done
+
+    # # Display ports that are currently listening and free
+    if [ ${#portsInUse} -ne 0 ]; then
+      echo -e "The following ports are in use:\n$portsInUse"
+    fi
+
+    if [ ${#freePorts} -ne 0 ]; then
+      echo -e "\nPorts that are currently not in use on this server are:\n$freePorts\n"
+      echo -e "Test server will be listening on the listed ports\n"
+
+      # Check compose type
+      docker-compose &> /dev/null
+      ec=$?
+
+      # # Run Docker Compose
+      cp $subName/docker-compose.yaml ./docker-compose.yaml
+
+      if [ $ec -eq 0 ]; then
+        docker-compose up -d
+        ec=$?
+      else
+        docker compose up -d
+        ec=$?
+      fi
+
+      cp ./docker-compose.yaml $subName/serviceState
+      rm ./docker-compose.yaml
+
+      if [ $ec -eq 0 ]; then
+        echo -e "\nNginx server is now listening on the listed ports.... Run the command './listener stop' to stop listening when done\n"
+      fi
+      
+    else
+      echo -e "No free ports to listen on....\n"
+      exit 2
+    fi
+
+  else
+    echo "Error: $subName/ports.txt file not found in the current directory."
+  fi
+elif [ $task = "stop" ]; then
+  # Stop docker compose service
+  # Check compose type
+  docker-compose &> /dev/null
+  ec=$?
+
+  cp $subName/serviceState ./docker-compose.yaml
+  
+  echo -e "\nStoping listening server and freeing up space .......\n"
+
+  # # Run Docker Compose stop
+  if [ $ec -eq 0 ]; then
+    docker-compose down 
+  else
+    docker compose down
+  fi
+  rm ./docker-compose.yaml
+  echo -e "Server removed successfully and space freed....\n"
+elif [ $task = "setup-server" ]; then
+  # Setup Nginx server
+  echo "Setting up Nginx server...."
+  docker load -i  $subName/nginx.tar &> /dev/null
+  ec=$?
+
+  if [ $ec -eq 0 ]; then
+    echo "Nginx server has been setup successfully..."
+    echo -e "You can now start the ports listner with the command './listener start'\n"
+  else
+    echo -e "something went wrong while trying to setup the Nginx server, kindly try again after few minutes\n"
+    exit 2
+  fi
+
+elif [ $task = "status" ]; then
+  echo -e "\nChecking the status of the ports listener"
+  docker ps | grep -i nginx-test-server &> /dev/null
+  ec=$?
+  if [ $ec -eq 0 ]; then
+    echo -e "The port listener is still running....\n"
+  else
+    echo -e "The port listner is not running. You can start it by running the command './listener start'\n"
+  fi
+fi
