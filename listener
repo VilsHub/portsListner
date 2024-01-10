@@ -27,7 +27,7 @@ if [ $ec -ne 0 ]; then
 fi
 
 # Check if docker is installed
-which netstat &> /dev/null
+which docker &> /dev/null
 ec=$?
 if [ $ec -ne 0 ]; then
   echo -e "\nDocker is not installed on this server, please install it and try again\n"
