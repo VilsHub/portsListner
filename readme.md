@@ -14,11 +14,10 @@ This script is dependent on the followings:
 # Usage
 
 Here are the steps needed to use the script
-
-    1 Run the command **listener setup-server** to setup server (one time setup, to setup the Nginx server)
-    2 Specify all target ports in the **./comp/ports.txt** file, each port on a new line
-    3 To start port listening, run the command  **listener start**
-    4 To stop port listening, run the command **listener stop**
+  1. Run the command **listener setup-server** to setup server (one time setup, to setup the Nginx server)
+  2. Specify all target ports in the **./comp/ports.txt** file, each port on a new line
+  3. To start port listening, run the command  **listener start**
+  4. To stop port listening, run the command **listener stop**
 
 # Note
 
