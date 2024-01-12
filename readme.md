@@ -14,10 +14,21 @@ This script is dependent on the followings:
 # Usage
 
 Here are the steps needed to use the script
-  1. Run the command **listener setup-server** to setup server (one time setup, to setup the Nginx server)
+  1. Run the command **listener [options] setup-server** to setup server (one time setup, to setup the Nginx server)
   2. Specify all target ports in the **./comp/ports.txt** file, each port on a new line
-  3. To start port listening, run the command  **listener start**
-  4. To stop port listening, run the command **listener stop**
+  3. To start port listening, run the command  **listener [options] start**
+  4. To stop port listening, run the command **listener [options] stop**
+  5. Where the **listener [options] stop** command fails to stop the active runing instance of the listener, run the command **listener [options] stop-all**
+  6. To check the status of the listener, run the command **listener [options] status**
+  7. To view the applications making use of the none free ports, run the command **listener [options] show-used-ports**
+
+
+**WHERE**
+
+_options_: An optional flag to pass to the listener to change the way it behaves. Here are the available options:
+ - **-a** : Tells the listener to attempt opening all ports, without checking if a ports is free or not
+ - **-s** : Tells the listener to skip dependencies check.
+
 
 # Note
 
