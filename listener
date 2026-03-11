@@ -249,14 +249,22 @@ elif [ $task = "setup-server" ]; then
   echo "Setting up Nginx server...."
 
   if [ -f "$subName/nginx.tar" ]; then
-      cmd="docker load -i \"$subName/nginx.tar\""
+      if docker load -i "$subName/nginx.tar" &> /dev/null; then
+          success=1
+      else
+          success=0
+      fi
   else
-      cmd="docker pull nginx"
+      if docker pull nginx &> /dev/null; then
+          success=1
+      else
+          success=0
+      fi
   fi
  
   ec=$?
 
-  if eval "$cmd" &> /dev/null; then
+  if [ "$success" -eq 1 ]; then
     echo "Nginx server has been setup successfully..."
     echo -e "You can now start the ports listner with the command './listener start'\n"
   else
