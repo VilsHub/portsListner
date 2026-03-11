@@ -239,7 +239,7 @@ elif [ "$task" = "setup-server" ]; then
       if docker load -i "$subName/nginx.tar" &> /dev/null; then
           success=1
       else
-          success=0
+          success=2
       fi
   else
       if docker pull nginx &> /dev/null; then
@@ -254,6 +254,9 @@ elif [ "$task" = "setup-server" ]; then
   if [ "$success" -eq 1 ]; then
     echo "Nginx server has been setup successfully..."
     echo -e "You can now start the ports listner with the command './listener start'\n"
+  elif ["$success" -eq 2 ]; then 
+    echo -e "something went wrong with the tar ball, kindly try verifying the tar ball, at: './comp/nginx.tar'\n"
+    exit 2
   else
     echo -e "something went wrong while trying to setup the Nginx server, kindly try again after few minutes\n"
     exit 2
