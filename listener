@@ -254,7 +254,7 @@ elif [ "$task" = "setup-server" ]; then
   if [ "$success" -eq 1 ]; then
     echo "Nginx server has been setup successfully..."
     echo -e "You can now start the ports listner with the command './listener start'\n"
-  elif ["$success" -eq 2 ]; then 
+  elif [ "$success" -eq 2 ]; then 
     echo -e "something went wrong with the tar ball, kindly try verifying the tar ball, at: './comp/nginx.tar'\n"
     exit 2
   else
