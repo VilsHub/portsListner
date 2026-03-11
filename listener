@@ -247,7 +247,13 @@ elif [ $task = "stop" ]; then
 elif [ $task = "setup-server" ]; then
   # Setup Nginx server
   echo "Setting up Nginx server...."
-  docker load -i  $subName/nginx.tar &> /dev/null
+
+  if [ -f "$subName/nginx.tar" ]; then
+     docker load -i  $subName/nginx.tar &> /dev/null
+  else
+    docker pull nginx
+  fi
+ 
   ec=$?
 
   if [ $ec -eq 0 ]; then
