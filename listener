@@ -63,8 +63,8 @@ else
 fi
 
 # Compute default value for task
-if [[ $task != "stop" && $task != "start" && $task != "setup-server" && $task != "status" && $task != "show-used-ports" && $task != "stop-all" ]]; then
-  echo -e "\nThe listener task '$task' is not defined, the default task 'start' is being used\n" 
+if [[ "$task" != "stop" && "$task" != "start" && "$task" != "setup-server" && "$task" != "status" && "$task" != "show-used-ports" && "$task" != "stop-all" ]]; then
+  echo -e "\nThe listener task '\"$task\"' is not defined, the default task 'start' is being used\n" 
   task="start"
 fi
 
@@ -92,7 +92,7 @@ if [ $skip -ne 1 ];then
 fi
 
 
-if [ $task = "start" ]; then
+if [ "$task" = "start" ]; then
 
   # Check if instance is already running
   id=$(docker ps | grep nginx-test-server | awk '{print $1}')
@@ -100,20 +100,6 @@ if [ $task = "start" ]; then
   if [ ${#id} -gt 0 ]; then
     echo -e "\nListener instance is already running with the container id: $id\n"
   else
-
-    # read -p "Please supply the path to the port file: " portFile
-
-    # if [ ! -f $portFile  ]; then
-    #   fSet=0
-    #   while [ $fSet -eq 0 ]; do
-    #       read -p "The supplied file does not exist, please supply a valid path to file : " portFile
-
-    #       if [ -f $portFile ];then
-    #           fSet=1
-    #           break
-    #       fi
-    #   done
-    # fi
     portFile=""
     getFile
 
@@ -121,7 +107,7 @@ if [ $task = "start" ]; then
     readarray -t PORTS < $portFile
     freePorts=""
     portsInUse=""
-    cat $subName/dc_main > $subName/docker-compose.yaml
+    cat "$subName/dc_main" > $subName/docker-compose.yaml
 
     n=0
     a=0
@@ -188,8 +174,9 @@ if [ $task = "start" ]; then
     fi
 
     # Check compose type
-    docker-compose &> /dev/null
-    ec=$?
+    if [ docker-compose &> /dev/null ]; then
+      ec=0
+    fi
 
     # # Run Docker Compose
     cp $subName/docker-compose.yaml ./docker-compose.yaml
@@ -206,7 +193,7 @@ if [ $task = "start" ]; then
     rm ./docker-compose.yaml
   fi
 
-elif [ $task = "stop" ]; then
+elif [ "$task" = "stop" ]; then
 
   # Check if listener instance is running
   docker ps | grep nginx-test-server &> /dev/null
@@ -244,7 +231,7 @@ elif [ $task = "stop" ]; then
     echo -e "\nNo running listener instance found to stop\n"
   fi
   
-elif [ $task = "setup-server" ]; then
+elif [ "$task" = "setup-server" ]; then
   # Setup Nginx server
   echo "Setting up Nginx server...."
   success=-1
@@ -272,7 +259,7 @@ elif [ $task = "setup-server" ]; then
     exit 2
   fi
 
-elif [ $task = "status" ]; then
+elif [ "$task" = "status" ]; then
   echo -e "\nChecking the status of the ports listener...."
   docker ps | grep -i nginx-test-server &> /dev/null
   ec=$?
@@ -282,7 +269,7 @@ elif [ $task = "status" ]; then
     echo -e "The port listner is not running. You can start it by running the command './listener start'\n"
   fi
 
-elif [ $task = "show-used-ports" ]; then
+elif [ "$task" = "show-used-ports" ]; then
   portFile=""
   getFile
 
@@ -305,7 +292,7 @@ elif [ $task = "show-used-ports" ]; then
     fi
   done
 
-elif [ $task = "stop-all" ]; then
+elif [ "$task" = "stop-all" ]; then
     id=$(docker ps | grep nginx-test-server | awk '{print $1}')
 
     if [ ${#id} -gt 0 ]; then
